@@ -52,6 +52,15 @@ int main(int ac, char **av)
             exit(1);
         }
 
-        for (int sockedId = 0; sockedId)
+        for (int sockedId = 0; sockedId <= maxSocket; sockedId++)
+        {
+            if (FD_ISSET(sockedId, &readySockets))
+            {
+                if (sockedId == serverSocket)
+                {
+                    
+                }
+            }
+        }
     }
 }
