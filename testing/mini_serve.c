@@ -32,4 +32,26 @@ int main(int ac, char **av)
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     serverAddress.sin_port = htons(atoi(av[1]));
+
+    if (bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
+    {
+        perror("Error listening on servert socket");
+        exit(1);
+    }
+
+    FD_ZERO(&activeSockets);
+    FD_SET(serverSocket, &activeSockets);
+    int maxSocket = serverSocket;
+
+    while (1)
+    {
+        readySockets = activeSockets;
+        if (select(maxSocket + 1, &readySockets, NULL, NULL, NULL) < 0)
+        {
+            perror("Error in select");
+            exit(1);
+        }
+
+        for (int sockedId = 0; sockedId)
+    }
 }
