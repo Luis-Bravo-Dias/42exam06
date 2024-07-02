@@ -3,22 +3,23 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 
-int maxSock;
-char *msg = NULL;
+int	maxSock;
+char	*msg = NULL;
 
-int	g_cliId[5000];
+int	all_cliID[5000];
 char	*cliBuff[5000];
 
-char	buff_sd[1001];
-char	buff_rd[1001];
+char	buff_send[1001];
+char	buff_read[1001];
 
 fd_set rd_set, wrt_set, atv_set;
 
-void	ft_error(char *str)
+void	ft_error(char *s)
 {
-	perror(str);
+	perror(s);
 	exit(1);
 }
 
@@ -35,8 +36,8 @@ int extract_message(char **buf, char **msg)
 	{
 		if ((*buf)[i] == '\n')
 		{
-			newbuf = calloc(strlen(*buf + i + 1) + 1, sizeof(*newbuf));
-			if (!newbuf)
+			newbuf = calloc(1, sizeof(*newbuf) * (strlen(*buf + i + 1) + 1));
+			if (newbuf == 0)
 				return (-1);
 			strcpy(newbuf, *buf + i + 1);
 			*msg = *buf;
@@ -49,40 +50,28 @@ int extract_message(char **buf, char **msg)
 	return (0);
 }
 
-char	*str_join(char *buff, char *add)
+char *str_join(char *buf, char *add)
 {
-	int len_buff = (buff == 0) ? 0 : strlen(buff);
-	int	len_add = (add == 0) ? 0 : strlen(add);
+	char	*newbuf;
+	int		len;
 
-	char *new_str = malloc(sizeof(*new_str) * (len_buff + len_add + 1));
-	if (!new_str)
+	if (buf == 0)
+		len = 0;
+	else
+		len = strlen(buf);
+	newbuf = malloc(sizeof(*newbuf) * (len + strlen(add) + 1));
+	if (newbuf == 0)
 		return (0);
-	new_str[0] = 0;
-	if (buff)
-	{
-		strcat(new_str, buff);
-		free(buff);
-	}
-	if (add)
-		strcat(new_str, add);
-	return (new_str);
-}
-
-void	send_msg(int fd)
-{
-	for (int sockId = 3; sockId <= maxSock; sockId++)
-	{
-		if (FD_ISSET(sockId, &wrt_set) && sockId != fd)
-		{
-			send(sockId, buff_sd, strlen(buff_sd), 0);
-			if (msg)
-				send(sockId, msg, strlen(msg), 0);
-		}
-	}
+	newbuf[0] = 0;
+	if (buf != 0)
+		strcat(newbuf, buf);
+	free(buf);
+	strcat(newbuf, add);
+	return (newbuf);
 }
 
 
-int main(int	ac, char **av) {
+int main() {
 	int sockfd, connfd, len;
 	struct sockaddr_in servaddr, cli; 
 
