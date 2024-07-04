@@ -71,42 +71,46 @@ char *str_join(char *buf, char *add)
 }
 
 
-int main() {
-	int sockfd, connfd, len;
-	struct sockaddr_in servaddr, cli; 
+int main(int ac, char **av) {
 
-	// socket create and verification 
-	sockfd = socket(AF_INET, SOCK_STREAM, 0); 
-	if (sockfd == -1) { 
-		printf("socket creation failed...\n"); 
-		exit(0); 
-	} 
-	else
-		printf("Socket successfully created..\n"); 
-	bzero(&servaddr, sizeof(servaddr)); 
+	if (ac != 2)
+		ft_error("Wrong number of arguments\n");
+	int sockfd, connfd, cliId;
+	cliId = 0;
+	struct sockaddr_in servaddr, cliaddr;
+	bzero(&servaddr, sizeof(servaddr));
+	socklen_t len_cli = sizeof(cliaddr);
 
 	// assign IP, PORT 
 	servaddr.sin_family = AF_INET; 
-	servaddr.sin_addr.s_addr = htonl(2130706433); //127.0.0.1
-	servaddr.sin_port = htons(8081); 
+	servaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK); //127.0.0.1
+	servaddr.sin_port = htons(atoi(av[1]));
+
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd < 0)
+		ft_error("Fatal error\n");
 
 	// Binding newly created socket to given IP and verification 
-	if ((bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr))) != 0) { 
-		printf("socket bind failed...\n"); 
-		exit(0); 
-	} 
-	else
-		printf("Socket successfully binded..\n");
-	if (listen(sockfd, 10) != 0) {
-		printf("cannot listen\n"); 
-		exit(0); 
+	if ((bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr))) < 0)
+		ft_error("Fatal error\n");
+	if (listen(sockfd, SOMAXCONN) < 0)
+		ft_error("Fatal error\n");
+	maxSock = sockfd;
+	FD_ZERO(&atv_set);
+	FD_SET(sockfd, &atv_set);
+
+	while (1)
+	{
+		rd_set = wrt_set = atv_set;
+		if (select(maxSock + 1, &rd_set, &wrt_set, 0, 0) <= 0)
+			continue;
+		if (FD_ISSET(sockfd, &rd_set))
+		{
+			connfd = accept(sockfd, (struct sockaddr *)&cliaddr, &len_cli);
+			if (connfd < 0)
+				ft_error("Fatal error\n");
+			FD_SET(connfd, &atv_set);
+			
+		}
 	}
-	len = sizeof(cli);
-	connfd = accept(sockfd, (struct sockaddr *)&cli, &len);
-	if (connfd < 0) { 
-        printf("server acccept failed...\n"); 
-        exit(0); 
-    } 
-    else
-        printf("server acccept the client...\n");
 }
