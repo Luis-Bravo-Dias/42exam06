@@ -23,12 +23,12 @@ void	ft_error(char *s)
 	exit(1);
 }
 
-int extract_message(char **buf, char **msg)
+int extract_message(char **buf, char **new_msg)
 {
 	char	*newbuf;
 	int	i;
 
-	*msg = 0;
+	*new_msg = 0;
 	if (*buf == 0)
 		return (0);
 	i = 0;
@@ -40,8 +40,8 @@ int extract_message(char **buf, char **msg)
 			if (newbuf == 0)
 				return (-1);
 			strcpy(newbuf, *buf + i + 1);
-			*msg = *buf;
-			(*msg)[i + 1] = 0;
+			*new_msg = *buf;
+			(*new_msg)[i + 1] = 0;
 			*buf = newbuf;
 			return (1);
 		}
@@ -70,6 +70,18 @@ char *str_join(char *buf, char *add)
 	return (newbuf);
 }
 
+void	send_msg(int fd)
+{
+	for (int sockId = 3; sockId <= maxSock; sockId++)
+	{
+		if (FD_ISSET(sockId, &wrt_set) && sockId != fd)
+		{
+			send(sockId, buff_send, strlen(buff_send), 0);
+			if (msg)
+				send(sockId, msg, strlen(msg), 0);
+		}
+	}
+}
 
 int main(int ac, char **av) {
 
@@ -110,7 +122,12 @@ int main(int ac, char **av) {
 			if (connfd < 0)
 				ft_error("Fatal error\n");
 			FD_SET(connfd, &atv_set);
-			
+			maxSock = (connfd > maxSock) ? connfd : maxSock;
+			all_cliID[connfd] = cliId++;
+			sprintf(buff_send, "server: client %d just arrived\n", all_cliID[connfd]);
+			send_msg(connfd);
+			cliBuff[connfd] = 0;
+			continue;
 		}
 	}
 }
