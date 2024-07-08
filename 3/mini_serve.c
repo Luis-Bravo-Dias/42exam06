@@ -129,5 +129,38 @@ int main(int ac, char **av) {
 			cliBuff[connfd] = 0;
 			continue;
 		}
+		for (int ID = 3; ID < maxSock; ID++)
+		{
+			if (FD_ISSET(ID, &rd_set) && ID != sockfd)
+			{
+				int	readeing = recv(ID,buff_read, 1000, 0);
+				if (readeing <= 0)
+				{
+					FD_CLR(ID, &atv_set);
+					sprintf(buff_send, "server: client %d just left\n", all_cliID[ID]);
+					send_msg(ID);
+					if (cliBuff[ID] != 0)
+						free(cliBuff[ID]);
+					close(ID);
+				}
+				else
+				{
+					buff_read[readeing] = 0;
+					cliBuff[ID] = str_join(cliBuff[ID], buff_read);
+					msg = 0;
+					while (extract_message(&cliBuff[ID], &msg))
+					{
+						sprintf(buff_send, "client %d: ", all_cliID[ID]);
+						send_msg(ID);
+						if (msg)
+						{
+							free(msg);
+							msg = 0;
+						}
+					}
+				}
+			}
+		}
 	}
+	return (0);
 }
