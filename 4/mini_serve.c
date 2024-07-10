@@ -22,47 +22,49 @@ void ft_error(char *s)
 	exit(1);
 }
 
-char *str_join(char *buff, char *add)
+char *str_join(char *buf, char *add)
 {
-	int len_buff = (buff == 0) ? 0 : strlen(buff);
-	int len_add = (add == 0) ? 0 : strlen(add);
+	char	*newbuf;
+	int		len;
 
-	char *res = malloc(sizeof(*res) * (len_buff + len_add + 1));
-	if (!res)
+	if (buf == 0)
+		len = 0;
+	else
+		len = strlen(buf);
+	newbuf = malloc(sizeof(*newbuf) * (len + strlen(add) + 1));
+	if (newbuf == 0)
 		return (0);
-	res[0] = 0;
-	if (buff)
-	{
-		strcat(res, buff);
-		free(buff);
-	}
-	if (add)
-		strcat(res, add);
-	return (res);
+	newbuf[0] = 0;
+	if (buf != 0)
+		strcat(newbuf, buf);
+	free(buf);
+	strcat(newbuf, add);
+	return (newbuf);
 }
 
-int extract_msg(char **buff, char **msg)
+int extract_msg(char **buf, char **new_msg)
 {
-	int i = 0;
-	char *newbuff;
+	char	*newbuf;
+	int	i;
 
-	*msg = 0;
-	if (*buff == 0)
+	*new_msg = 0;
+	if (*buf == 0)
 		return (0);
-	while ((*buff)[i])
+	i = 0;
+	while ((*buf)[i])
 	{
-		if ((*buff)[i] == '\n')
+		if ((*buf)[i] == '\n')
 		{
-			newbuff = calloc(strlen(*buff + i + 1) + 1, sizeof(*newbuff));
-			if (!newbuff)
+			newbuf = calloc(1, sizeof(*newbuf) * (strlen(*buf + i + 1) + 1));
+			if (newbuf == 0)
 				return (-1);
-			strcpy(newbuff, (*buff + i + 1));
-			*msg = *buff;
-			(*msg)[i + 1] = 0;
-			*buff = newbuff;
+			strcpy(newbuf, *buf + i + 1);
+			*new_msg = *buf;
+			(*new_msg)[i + 1] = 0;
+			*buf = newbuf;
 			return (1);
 		}
-		++i;
+		i++;
 	}
 	return (0);
 }
