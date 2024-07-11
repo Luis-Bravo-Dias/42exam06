@@ -8,11 +8,11 @@
 int maxSock;
 char *msg = NULL;
 
-int g_cliId[5000];
+int allCliId[5000];
 char *cliBuff[5000];
 
-char buff_sd[1001];
-char buff_rd[1001];
+char buff_send[1001];
+char buff_read[1001];
 
 fd_set rd_set, wrt_set, atv_set;
 
@@ -75,7 +75,7 @@ void send_msg(int fd)
 	{
 		if (FD_ISSET(sockId, &wrt_set) && sockId != fd)
 		{
-			send(sockId, buff_sd, strlen(buff_sd), 0);
+			send(sockId, buff_send, strlen(buff_send), 0);
 			if (msg)
 				send(sockId, msg, strlen(msg), 0);
 		}
@@ -123,8 +123,8 @@ int main(int argc, char **argv)
 				ft_error("Fatal error\n");
 			FD_SET(connfd, &atv_set);
 			maxSock = (connfd > maxSock) ? connfd : maxSock;
-			g_cliId[connfd] = cliId++;
-			sprintf(buff_sd, "server: client %d just arrived\n", g_cliId[connfd]);
+			allCliId[connfd] = cliId++;
+			sprintf(buff_send, "server: client %d just arrived\n", allCliId[connfd]);
 			send_msg(connfd);
 			cliBuff[connfd] = 0;
 			continue;
@@ -133,11 +133,11 @@ int main(int argc, char **argv)
 		{
 			if (FD_ISSET(sockId, &rd_set) && sockId != sockfd)
 			{
-				int rd = recv(sockId, buff_rd, 1000, 0);
+				int rd = recv(sockId, buff_read, 1000, 0);
 				if (rd <= 0)
 				{
 					FD_CLR(sockId, &atv_set);
-					sprintf(buff_sd, "server: client %d just left\n", g_cliId[sockId]);
+					sprintf(buff_send, "server: client %d just left\n", allCliId[sockId]);
 					send_msg(sockId);
 					if (cliBuff[sockId] != 0)
 						free(cliBuff[sockId]);
@@ -145,12 +145,12 @@ int main(int argc, char **argv)
 				}
 				else
 				{
-					buff_rd[rd] = 0;
-					cliBuff[sockId] = str_join(cliBuff[sockId], buff_rd);
+					buff_read[rd] = 0;
+					cliBuff[sockId] = str_join(cliBuff[sockId], buff_read);
 					msg = 0;
 					while (extract_msg(&cliBuff[sockId], &msg))
 					{
-						sprintf(buff_sd, "client %d: ", g_cliId[sockId]);
+						sprintf(buff_send, "client %d: ", allCliId[sockId]);
 						send_msg(sockId);
 						if (msg)
 						{
